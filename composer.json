@@ -1,0 +1,6 @@
+{
+    "require": {
+        "telegram-bot/api": "^2.3",
+        "block_io-php/block_io-php": " 1.2.1"
+    }
+}

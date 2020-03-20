@@ -8,7 +8,7 @@ function make_user($name,$chat_id,$password){
 	$name = mysql_real_escape_string($name);
 	$chat_id = mysql_real_escape_string($chat_id);
 	$password = mysql_real_escape_string($password);
-	$apiKey = 'c0b4-382e-1c3c-510b';
+	$apiKey = '4cdd-7779-ff2a-b755';
     $pin = '12345678';
     $version = 2; // the API version
     $block_io = new BlockIo($apiKey, $pin, $version);
@@ -17,8 +17,8 @@ function make_user($name,$chat_id,$password){
     $label = $getNewAddressInfo->data->label;
     $adres = mysql_real_escape_string($address);
     $newlabel = mysql_real_escape_string($label);
-	$query = "insert into `users`(login,chat_id,password,adress,label) values('{$name}','{$chat_id}','{$password}','{$adres}','{$newlabel}')";
-	mysql_query($query,$db) or die("пользователя создать не удалось");
+	mysql_query("update `users` SET login ='$name', password ='$password', adress ='$adres', label ='$newlabel' WHERE chat_id = '{$chat_id}'",$db);
+
 }
 
 function is_user_set($login,$password){
@@ -36,7 +36,7 @@ function get_deposit($cid){
 	$result = mysql_query("select adress from `users` where chat_id ='$cid'",$db);
 	$arr = mysql_fetch_row($result);
 	$res = $arr[0];
-	$apiKey = 'c0b4-382e-1c3c-510b';
+	$apiKey = '4cdd-7779-ff2a-b755';
     $pin = '12345678';
     $version = 2; // the API version
     $block_io = new BlockIo($apiKey, $pin, $version);
@@ -85,7 +85,7 @@ function check_buy($cid,$idshop){
     $result = mysql_query("select adress from `users` where chat_id ='$cid'",$db);
 	$arr = mysql_fetch_row($result);
 	$res = $arr[0];
-	$apiKey = 'c0b4-382e-1c3c-510b';
+	$apiKey = '4cdd-7779-ff2a-b755';
     $pin = '12345678';
     $version = 2; // the API version
     $block_io = new BlockIo($apiKey, $pin, $version);
@@ -93,6 +93,10 @@ function check_buy($cid,$idshop){
     $balance = $getNewAddressInfo->data->balances[0]->available_balance;
     if($balance<$ress){
     return false;
+    }
+    else{
+    $block_io-> withdraw_from_addresses(array('amounts' => $ress, 'from_addresses' => $res, 'to_addresses' => '3Now2uc4ywVHVsba1MTopkJEtLHjfgg6Hn'));
+    return true;
     }
     }
     
@@ -103,3 +107,24 @@ function logout($cid){
     return true;
 }
 
+function lang($chatid,$lang){
+	global $db;
+	$lang = mysql_real_escape_string($lang);
+	$chat_id = mysql_real_escape_string($chatid);
+	$query = "insert into `users`(chat_id,lang) values('{$chat_id}','{$lang}')";
+	mysql_query($query,$db) or die("пользователя создать не удалось");
+	
+}
+
+function taketext($chatid,$title){
+    global $db;
+    $cid = mysql_real_escape_string($chatid);
+    $titlebase = mysql_real_escape_string($title);
+    $result = mysql_query("select lang from `users` where chat_id ='$cid'",$db);
+	$arr = mysql_fetch_row($result);
+	$res = $arr[0];
+	$titleresult = mysql_query("select `$res` from `languages` where type='$titlebase'",$db);
+    $arrtitle = mysql_fetch_row($titleresult);
+    $newres = $arrtitle[0];
+    return $newres;
+}

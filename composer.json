@@ -3,6 +3,7 @@
         "telegram-bot/api": "^2.3",
         "block_io-php/block_io-php": " 1.2.1",
         "irazasyed/telegram-bot-sdk": "^2.0",
-        "gettext/gettext": "^4.8"
+        "gettext/gettext": "^4.8",
+        "coinbase/coinbase": "^2.8"
     }
 }

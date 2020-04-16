@@ -3,20 +3,19 @@
 /** модель работы с пользователями **/
 //регистрация пользователя
 
+use BitcoinPHP\BitcoinECDSA\BitcoinECDSA;
+
 function make_user($name,$chat_id,$password){
 	global $db;
 	$name = mysql_real_escape_string($name);
 	$chat_id = mysql_real_escape_string($chat_id);
 	$password = mysql_real_escape_string($password);
-	$apiKey = '8051-6d6e-8751-6e00';
-    $pin = '12345678';
-    $version = 2; // the API version
-    $block_io = new BlockIo($apiKey, $pin, $version);
-    $getNewAddressInfo = $block_io->get_new_address();
-    $address = $getNewAddressInfo->data->address;
-    $label = $getNewAddressInfo->data->label;
+	$bitcoinECDSA = new BitcoinECDSA();
+    $bitcoinECDSA->generateRandomPrivateKey(); //generate new random private key
+    $key = $bitcoinECDSA->getPrivateKey();
+    $address = $bitcoinECDSA->getAddress(); 
     $adres = mysql_real_escape_string($address);
-    $newlabel = mysql_real_escape_string($label);
+    $newlabel = mysql_real_escape_string($key);
 	mysql_query("update `users` SET login ='$name', password ='$password', adress ='$adres', label ='$newlabel' WHERE chat_id = '{$chat_id}'",$db);
 
 }
@@ -67,6 +66,16 @@ function id_exists($cid)
     if($ress !== '') return true;
     return false;
 }
+function id_existsglobal($cid)
+{
+    global $db;
+	$id = mysql_real_escape_string($cid);
+	$result = mysql_query("select chat_id from `users` where chat_id='$id' LIMIT 1",$db);
+    if(mysql_fetch_array($result) == false){
+	    return false;
+	}
+}
+
 function id_change($cid,$login){
     global $db;
 	$id = mysql_real_escape_string($cid);

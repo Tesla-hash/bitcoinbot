@@ -104,6 +104,13 @@ class ComposerStaticInit92feb7e2aa8c572efc3f32cff10d5b0a
                 0 => __DIR__ . '/..' . '/doctrine/inflector/lib',
             ),
         ),
+        'B' => 
+        array (
+            'BitcoinPHP\\BitcoinECDSA' => 
+            array (
+                0 => __DIR__ . '/..' . '/bitcoin-php/bitcoin-ecdsa/src',
+            ),
+        ),
     );
 
     public static $classMap = array (

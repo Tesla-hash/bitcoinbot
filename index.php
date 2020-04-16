@@ -10,6 +10,8 @@ require_once("vendor/autoload.php");
 require_once("models/db_connect.php");
 require_once("models/users.php");
 require_once("vendor/block_io/block_io.php");
+require_once("vendor/bitcoin-php/bitcoin-ecdsa/src/BitcoinPHP/BitcoinECDSA/BitcoinECDSA.php");
+
 // дебаг
 if(true){
 	error_reporting(E_ALL & ~(E_NOTICE | E_USER_NOTICE | E_DEPRECATED));
@@ -44,7 +46,25 @@ $bot->command("start", function ($message) use ($bot) {
     global $db;
     $cid = $message->getChat()->getId();
     //$username = $message->getFrom()->getUsername();
-	if(id_exists($cid) !== false){
+    if(id_existsglobal($cid) == false){
+        	$change = getbutton(3);
+
+	$keyboard = new \TelegramBot\Api\Types\ReplyKeyboardMarkup(
+		[
+			[
+				['callback_data' => 'en', 'text' => 'Հայերեն'],
+				['callback_data' => 'rus', 'text' => 'Русский'],
+				['callback_data' => 'alb', 'text' => 'English']
+			]
+			
+		],false,true
+	);
+    
+	$bot->sendMessage($message->getChat()->getId(), $change, false, null,null,$keyboard);
+
+        
+    }
+	else if(id_exists($cid) !== false){
 	   $username = getusername($cid);
 	   $welcomes = taketext($cid,'welcome');
 	   $welcometext = '👋'.$welcomes.' ' . $username;
@@ -74,21 +94,6 @@ $bot->command("start", function ($message) use ($bot) {
 	    $bot->sendMessage($message->getChat()->getId(), '📜'.$menubutton.'📜', false, null,null,$keyboard);    
      
 
-}else{
-          	$change = getbutton(3);
-
-	$keyboard = new \TelegramBot\Api\Types\ReplyKeyboardMarkup(
-		[
-			[
-				['callback_data' => 'en', 'text' => 'Հայերեն'],
-				['callback_data' => 'rus', 'text' => 'Русский'],
-				['callback_data' => 'alb', 'text' => 'English']
-			]
-			
-		],false,true
-	);
-    
-	$bot->sendMessage($message->getChat()->getId(), $change, false, null,null,$keyboard);
 }});
 
 

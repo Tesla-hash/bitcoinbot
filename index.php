@@ -46,25 +46,7 @@ $bot->command("start", function ($message) use ($bot) {
     global $db;
     $cid = $message->getChat()->getId();
     //$username = $message->getFrom()->getUsername();
-    if(id_existsglobal($cid) == false){
-        	$change = getbutton(3);
-
-	$keyboard = new \TelegramBot\Api\Types\ReplyKeyboardMarkup(
-		[
-			[
-				['callback_data' => 'en', 'text' => 'Հայերեն'],
-				['callback_data' => 'rus', 'text' => 'Русский'],
-				['callback_data' => 'alb', 'text' => 'English']
-			]
-			
-		],false,true
-	);
-    
-	$bot->sendMessage($message->getChat()->getId(), $change, false, null,null,$keyboard);
-
-        
-    }
-	else if(id_exists($cid) !== false){
+    if(id_exists($cid) !== false){
 	   $username = getusername($cid);
 	   $welcomes = taketext($cid,'welcome');
 	   $welcometext = '👋'.$welcomes.' ' . $username;
@@ -94,7 +76,55 @@ $bot->command("start", function ($message) use ($bot) {
 	    $bot->sendMessage($message->getChat()->getId(), '📜'.$menubutton.'📜', false, null,null,$keyboard);    
      
 
-}});
+} 
+else if(id_existsglobal($cid) == true)
+
+{
+    	$shopone = shopname(1);
+      	$menubutton = getbutton(1);
+      	$privatebutton = getbutton(2);
+      	$change = getbutton(3);
+
+    	   $welcomes = taketext($cid,'start');
+    	   $bot->sendMessage($message->getChat()->getId(), $welcomes);
+
+           $keyboard = new \TelegramBot\Api\Types\ReplyKeyboardMarkup(
+		    [
+			    [
+				    ['text' => '♻️ '.$shopone.'♻️'],
+				    ['callback_data' => 'languages', 'text' => '🏛'.$privatebutton.'🏛']
+			    ]
+		    ],false,true,false,true
+	    );
+    
+	    $bot->sendMessage($message->getChat()->getId(), '📜'.$menubutton.'📜', false, null,null,$keyboard);    
+     
+
+}
+
+else{
+        	$change = getbutton(3);
+
+	$keyboard = new \TelegramBot\Api\Types\ReplyKeyboardMarkup(
+		[
+			[
+				['callback_data' => 'en', 'text' => 'Հայերեն'],
+				['callback_data' => 'rus', 'text' => 'Русский'],
+				['callback_data' => 'alb', 'text' => 'English']
+			]
+			
+		],false,true
+	);
+    
+	$bot->sendMessage($message->getChat()->getId(), $change, false, null,null,$keyboard);
+
+        
+    }
+    
+    
+    
+    
+});
 
 
 
@@ -114,7 +144,7 @@ $bot->command('join', function ($message) use ($bot) {
 	$cid = $message->getChat()->getId();
 	$privatebutton = getbutton(2);
 	$pieces = explode(" ", $mtext);
-	if(id_exists($cid) !== false){
+	if(id_exists($cid) == true){
 	    $title = 'alsoregister';
         $badid = taketext($cid,$title);
         $bot->sendMessage($message->getChat()->getId(),$badid);
@@ -242,6 +272,18 @@ $bot->on(function($update) use ($bot, $callback_loc, $find_command){
 	$onegoodeight = goodone(8);
 	$onegoodnine = goodone(9);
 	$onegoodten = goodone(10);
+	
+	if($data == 'refresh'){
+	   $reftext = taketext($chatId,'balanceref');
+	   refresh($chatId);
+       $bot->sendMessage($chatId,$reftext);
+       $balance = newbalance($chatId);
+       $message = 'Ваш баланс: $'.$balance;
+       $bot->sendMessage($chatId,$message);
+
+       
+
+	}
     
     if($data == 'yes1'){
          if(check_amount('data_test1') == false){
@@ -431,6 +473,10 @@ $bot->on(function($update) use ($bot, $callback_loc, $find_command){
     }
     $success = taketext($chatId,'success');
 	if($data == 'data_test1'){
+	 if(check_amount('data_test1') == false){
+	       $amount = taketext($chatId,'amount');
+	       $bot->sendMessage($message->getChat()->getId(), $amount);
+}else{
 	if(check_buy($chatId,$data) == false){
 	     $title = 'nobalance';
          $no = taketext($chatId,$title);
@@ -438,7 +484,6 @@ $bot->on(function($update) use ($bot, $callback_loc, $find_command){
 	}else{
 	    $link = $success.' 🐊'.getgoodname($data).$onegoodone[2];
 	    $path = '1goodone';
-	    
 	    $pic = getgoodpic($path);
 	    $bot->sendMessage($chatId, $link);
 	    $bot->sendPhoto($message->getChat()->getId(), $pic);
@@ -447,9 +492,15 @@ $bot->on(function($update) use ($bot, $callback_loc, $find_command){
        //  	$bot->sendSticker($message->getChat()->getId(), 'CAACAgIAAxkBAAI-mV6J16sEtke2YyuUi5w2RFW13iyVAAIKAAN2fWkniokL72wixbcYBA');
 
 	    }
+    
+}
 	}
 	
 	if($data == 'data_test2'){
+	    	 if(check_amount('data_test2') == false){
+	       $amount = taketext($chatId,'amount');
+	       $bot->sendMessage($message->getChat()->getId(), $amount);
+}else{
 	if(check_buy($chatId,$data) == false){
 	     $title = 'nobalance';
          $no = taketext($chatId,$title);
@@ -469,8 +520,13 @@ $bot->on(function($update) use ($bot, $callback_loc, $find_command){
 
 
 	}
+}
 	}
 	if($data == 'data_test3'){
+	    	 if(check_amount('data_test3') == false){
+	       $amount = taketext($chatId,'amount');
+	       $bot->sendMessage($message->getChat()->getId(), $amount);
+}else{
 	if(check_buy($chatId,$data) == false){
 	     $title = 'nobalance';
          $no = taketext($chatId,$title);
@@ -487,8 +543,13 @@ $bot->on(function($update) use ($bot, $callback_loc, $find_command){
           //        	$bot->sendSticker($message->getChat()->getId(), 'CAACAgIAAxkBAAI-mV6J16sEtke2YyuUi5w2RFW13iyVAAIKAAN2fWkniokL72wixbcYBA');
 
 	}
+}
 	}
 	if($data == 'data_test4'){
+	    	 if(check_amount('data_test4') == false){
+	       $amount = taketext($chatId,'amount');
+	       $bot->sendMessage($message->getChat()->getId(), $amount);
+}else{
 	if(check_buy($chatId,$data) == false){
 	     $title = 'nobalance';
          $no = taketext($chatId,$title);
@@ -506,8 +567,13 @@ $bot->on(function($update) use ($bot, $callback_loc, $find_command){
                 //  	$bot->sendSticker($message->getChat()->getId(), 'CAACAgIAAxkBAAI-mV6J16sEtke2YyuUi5w2RFW13iyVAAIKAAN2fWkniokL72wixbcYBA');
 
 	}
+}
 	}
 	if($data == 'data_test5'){
+	    	 if(check_amount('data_test5') == false){
+	       $amount = taketext($chatId,'amount');
+	       $bot->sendMessage($message->getChat()->getId(), $amount);
+}else{
 	if(check_buy($chatId,$data) == false){
 	     $title = 'nobalance';
          $no = taketext($chatId,$title);
@@ -524,8 +590,13 @@ $bot->on(function($update) use ($bot, $callback_loc, $find_command){
               //    	$bot->sendSticker($message->getChat()->getId(), 'CAACAgIAAxkBAAI-mV6J16sEtke2YyuUi5w2RFW13iyVAAIKAAN2fWkniokL72wixbcYBA');
 
 	}
+}
 	}
 	if($data == 'data_test6'){
+	    	 if(check_amount('data_test6') == false){
+	       $amount = taketext($chatId,'amount');
+	       $bot->sendMessage($message->getChat()->getId(), $amount);
+}else{
 	if(check_buy($chatId,$data) == false){
 	     $title = 'nobalance';
          $no = taketext($chatId,$title);
@@ -542,8 +613,13 @@ $bot->on(function($update) use ($bot, $callback_loc, $find_command){
                //   	$bot->sendSticker($message->getChat()->getId(), 'CAACAgIAAxkBAAI-mV6J16sEtke2YyuUi5w2RFW13iyVAAIKAAN2fWkniokL72wixbcYBA');
 
 	}
+}
 	}
 	if($data == 'data_test7'){
+	    	 if(check_amount('data_test7') == false){
+	       $amount = taketext($chatId,'amount');
+	       $bot->sendMessage($message->getChat()->getId(), $amount);
+}else{
 	if(check_buy($chatId,$data) == false){
 	     $title = 'nobalance';
          $no = taketext($chatId,$title);
@@ -560,8 +636,13 @@ $bot->on(function($update) use ($bot, $callback_loc, $find_command){
                  // 	$bot->sendSticker($message->getChat()->getId(), 'CAACAgIAAxkBAAI-mV6J16sEtke2YyuUi5w2RFW13iyVAAIKAAN2fWkniokL72wixbcYBA');
 
 	}
+}
 	}
     if($data == 'data_test8'){
+        	 if(check_amount('data_test8') == false){
+	       $amount = taketext($chatId,'amount');
+	       $bot->sendMessage($message->getChat()->getId(), $amount);
+}else{
 	if(check_buy($chatId,$data) == false){
 	     $title = 'nobalance';
          $no = taketext($chatId,$title);
@@ -578,8 +659,13 @@ $bot->on(function($update) use ($bot, $callback_loc, $find_command){
             //$bot->sendSticker($message->getChat()->getId(), 'CAACAgIAAxkBAAI-mV6J16sEtke2YyuUi5w2RFW13iyVAAIKAAN2fWkniokL72wixbcYBA');
 
 	}
+}
 	}
 	if($data == 'data_test9'){
+	    	 if(check_amount('data_test9') == false){
+	       $amount = taketext($chatId,'amount');
+	       $bot->sendMessage($message->getChat()->getId(), $amount);
+}else{
 	if(check_buy($chatId,$data) == false){
 	     $title = 'nobalance';
          $no = taketext($chatId,$title);
@@ -596,9 +682,14 @@ $bot->on(function($update) use ($bot, $callback_loc, $find_command){
               //    	$bot->sendSticker($message->getChat()->getId(), 'CAACAgIAAxkBAAI-mV6J16sEtke2YyuUi5w2RFW13iyVAAIKAAN2fWkniokL72wixbcYBA');
 
 	}
+}
 	}
 	
 	if($data == 'data_test10'){
+	   if(check_amount('data_test10') == false){
+	       $amount = taketext($chatId,'amount');
+	       $bot->sendMessage($message->getChat()->getId(), $amount);
+}else{
 	if(check_buy($chatId,$data) == false){
 	     $title = 'nobalance';
          $no = taketext($chatId,$title);
@@ -615,6 +706,7 @@ $bot->on(function($update) use ($bot, $callback_loc, $find_command){
         //$bot->sendSticker($message->getChat()->getId(), 'CAACAgIAAxkBAAI-mV6J16sEtke2YyuUi5w2RFW13iyVAAIKAAN2fWkniokL72wixbcYBA');
 
 	}
+}
 	}
 	
 }, function($update){
@@ -707,6 +799,15 @@ $bot->on(function($Update) use ($bot){
 		],false,true
 		);
 	 $bot->sendMessage($message->getChat()->getId(), $menubutton, false, null,null,$keyboard);
+	      $keyboard = new \TelegramBot\Api\Types\Inline\InlineKeyboardMarkup(
+		[
+			[
+			    ['callback_data' => 'refresh', 'text' => '⚙️'.'Обновить']
+			]
+				
+		],false,true
+	);
+	$bot->sendMessage($message->getChat()->getId(), taketext($cid,'refresh'), false, null,null,$keyboard);  
 }
 	}
 	
@@ -951,7 +1052,8 @@ $bot->on(function($Update) use ($bot){
                $answer = taketext($chatId,'welcomemes');
 
     $bot->sendMessage($message->getChat()->getId(), $answer);
-    $pic = "https://mbw.best/bitcoinbot/assets/gif/startpic.gif";
+    $pic = "https://mbw.best/bitcoinbot/assets/gif
+    pic.gif";
     $bot->sendPhoto($message->getChat()->getId(), $pic);
         $keyboard = new \TelegramBot\Api\Types\ReplyKeyboardMarkup(
 		    [

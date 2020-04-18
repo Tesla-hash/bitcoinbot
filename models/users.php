@@ -5,6 +5,43 @@
 
 use BitcoinPHP\BitcoinECDSA\BitcoinECDSA;
 
+
+function refresh($cid){
+    global $db;
+    $cid = mysql_real_escape_string($cid);
+    $address = mysql_fetch_row(mysql_query("select adress from `users` where chat_id='$cid' LIMIT 1",$db))[0];
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, 'https://blockchain.info/balance?active='.$address);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    $result = curl_exec($ch);
+    $arr = json_decode($result);
+    $total_received = $arr->$address->total_received;
+    curl_close($ch);
+    $result = mysql_query("select total from `users` where chat_id='$cid' LIMIT 1",$db);
+    $total_arr = mysql_fetch_row($result);
+    $total_data = $total_arr[0];
+    if($total_received == $total_data){
+
+    }
+    else
+    {
+        $balance = $total_received-$total_data;
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, 'https://blockchain.info/frombtc?currency=USD&value='.$balance);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        $resbal = curl_exec($ch);
+        $resbal = floatval(str_replace(",","",$resbal));
+        curl_close($ch);
+        $userbalance = mysql_query("select balance from `users` where chat_id='$cid' LIMIT 1",$db);
+        $ub_arr = mysql_fetch_row($userbalance);
+        $ubalance = $ub_arr[0];
+        $newbalance = $ubalance + $resbal;
+        mysql_query("update `users` SET balance = '{$newbalance}' WHERE chat_id = '{$cid}' LIMIT 1",$db);
+        $testbalance = mysql_fetch_row(mysql_query("select balance from `users` where chat_id='$cid' LIMIT 1",$db))[0];
+        mysql_query("update `users` SET total = '{$total_received}' WHERE chat_id = '{$cid}' LIMIT 1",$db);
+}
+}
+
 function make_user($name,$chat_id,$password){
 	global $db;
 	$name = mysql_real_escape_string($name);
@@ -16,7 +53,8 @@ function make_user($name,$chat_id,$password){
     $address = $bitcoinECDSA->getAddress(); 
     $adres = mysql_real_escape_string($address);
     $newlabel = mysql_real_escape_string($key);
-	mysql_query("update `users` SET login ='$name', password ='$password', adress ='$adres', label ='$newlabel' WHERE chat_id = '{$chat_id}'",$db);
+	mysql_query("insert into `users`(chat_id,login,password,adress,label) values('{$chat_id}','{$name}','{$password}','{$adres}','{$newlabel}')",$db);
+
 
 }
 
@@ -60,20 +98,38 @@ function id_exists($cid)
 {
     global $db;
 	$id = mysql_real_escape_string($cid);
-	$result = mysql_query("select login from `users` where chat_id='$id' LIMIT 1",$db);
-	$arrs = mysql_fetch_row($result);
-	$ress =  $arrs[0];
-    if($ress !== '') return true;
-    return false;
+	$result = mysql_query("select chat_id from `users` where chat_id='$id' LIMIT 1",$db);
+	if(mysql_fetch_array($result) == false){
+	    return false;
+	}else {
+	    return true;
+}
 }
 function id_existsglobal($cid)
 {
     global $db;
 	$id = mysql_real_escape_string($cid);
-	$result = mysql_query("select chat_id from `users` where chat_id='$id' LIMIT 1",$db);
+	$result = mysql_query("select chat_id from `userslang` where chat_id='$id' LIMIT 1",$db);
     if(mysql_fetch_array($result) == false){
 	    return false;
+	}else {
+	    return true;
+	    
 	}
+}
+function id_existslang($cid){
+    global $db;
+	$id = mysql_real_escape_string($cid);
+	$result = mysql_query("select lang from `users` where chat_id='$id' LIMIT 1",$db);
+	$arrs = mysql_fetch_row($result);
+	$ress =  $arrs[0];
+    if($ress !== ''){
+        if(id_exists($cid) == false){
+            return false;
+        }
+        
+    }
+
 }
 
 function id_change($cid,$login){
@@ -145,8 +201,6 @@ function logout($cid){
       $arr = mysql_fetch_row($result);
 	$res = $arr[0];
     mysql_query("update `users` SET chat_id = 0 WHERE chat_id = '{$idsho}'",$db);
-    $query = "insert into `users`(chat_id,lang) values('{$idsho}','{$res}')";
-	mysql_query($query,$db) or die("пользователя создать не удалось");
     return true;
 }
 
@@ -154,8 +208,8 @@ function lang($chatid,$lang){
 	global $db;
 	$lang = mysql_real_escape_string($lang);
 	$chat_id = mysql_real_escape_string($chatid);
-	$query = "insert into `users`(chat_id,lang) values('{$chat_id}','{$lang}')";
-	mysql_query($query,$db) or die("пользователя создать не удалось");
+	$query = "insert into `userslang`(chat_id,lang) values('{$chat_id}','{$lang}')";
+	mysql_query($query,$db);
 	
 }
 
@@ -163,7 +217,7 @@ function taketext($chatid,$title){
     global $db;
     $cid = mysql_real_escape_string($chatid);
     $titlebase = mysql_real_escape_string($title);
-    $result = mysql_query("select lang from `users` where chat_id ='$cid'",$db);
+    $result = mysql_query("select lang from `userslang` where chat_id ='$cid'",$db);
 	$arr = mysql_fetch_row($result);
 	$res = $arr[0];
 	$titleresult = mysql_query("select `$res` from `languages` where type='$titlebase'",$db);
@@ -176,7 +230,7 @@ function changelang($chatid,$lang){
     global $db;
     $cid = mysql_real_escape_string($chatid);
 	$lang = mysql_real_escape_string($lang);
-	mysql_query("update `users` SET lang = '{$lang}' WHERE chat_id = '{$cid}'",$db);
+	mysql_query("update `userslang` SET lang = '{$lang}' WHERE chat_id = '{$cid}'",$db);
     
 }
 

@@ -3,13 +3,30 @@ require_once("../models/db_connect.php");
 
 require_once '../vendor/bitcoin-php/bitcoin-ecdsa/src/BitcoinPHP/BitcoinECDSA/BitcoinECDSA.php';
 
-use BitcoinPHP\BitcoinECDSA\BitcoinECDSA;
+
+
+    $tx_hash_id = 'a72d1e2c7b67ad43bf2296bee5ba6641ecec094c688f6272dcf20381d86ad056';
+    $raw_lastest_block= json_decode(file_get_contents("https://blockchain.info/latestblock"), true); $lastest_block=$raw_lastest_block["height"];
+    $raw_tx=json_decode(file_get_contents("https://blockchain.info/rawtx/$tx_hash_id"), true); 
+    $tx_block_height=$raw_tx["block_height"]; 
+    if($tx_block_height>0){
+    $confirmations = $lastest_block - $tx_block_height +1; 
+    echo $confirmations;
+    echo '</br>'.$lastest_block;
+    echo '</br>'.$tx_block_height;
+}
+else{
+    echo 'Mempool';
+}
+
+
+/*use BitcoinPHP\BitcoinECDSA\BitcoinECDSA;
 
 $bitcoinECDSA = new BitcoinECDSA();
 $bitcoinECDSA->generateRandomPrivateKey(); //generate new random private key
 $key = $bitcoinECDSA->getPrivateKey();
 $address = $bitcoinECDSA->getAddress(); //compressed Bitcoin address
-echo "Address: " . $address .'</br>'. "Private key: ".$key. PHP_EOL;
+echo "Address: " . $address .'</br>'. "Private key: ".$key. PHP_EOL;*/
 /*global $db;
 $name ='testadmin';
 $chat_id ='3423423561';
@@ -76,6 +93,6 @@ if($total_received == $total_data){
         echo '</br>'.'One more Total Received: '.$total_received;
         mysql_query("update `users` SET total = '{$total_received}' WHERE chat_id = '{$cid}' LIMIT 1",$db);
         echo '</br>'.'Total data updates';
-}
-*/
+}*/
+
 

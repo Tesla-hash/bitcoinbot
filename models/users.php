@@ -7,41 +7,72 @@ use BitcoinPHP\BitcoinECDSA\BitcoinECDSA;
 
 
 function refresh($cid){
+global $db;
+$cid = mysql_real_escape_string($cid);
+$address = mysql_fetch_row(mysql_query("select adress from `users` where chat_id='$cid' LIMIT 1",$db))[0];
+
+$total_received_withoutconfirm = intval(json_decode(file_get_contents("https://blockchain.info/q/addressbalance/".$address), true));
+$total_received_withoutconfirm_usd = ceil(floatval((str_replace(",",".",json_decode(file_get_contents('https://blockchain.info/frombtc?currency=USD&value='.$total_received), true)))));
+$frozen_balance = mysql_fetch_row(mysql_query("select frozenbalance from `users` where chat_id='$cid' LIMIT 1",$db))[0];
+$frozen_satoshi = mysql_fetch_row(mysql_query("select frozensatoshi from `users` where chat_id='$cid' LIMIT 1",$db))[0];
+$total_received = intval(json_decode(file_get_contents("https://blockchain.info/q/addressbalance/".$address."?confirmations=1"), true));
+$total_received_usd = ceil(floatval((str_replace(",",".",json_decode(file_get_contents('https://blockchain.info/frombtc?currency=USD&value='.$total_received_withoutconfirm), true)))));
+$user_balance_satoshi = mysql_fetch_row(mysql_query("select total from `users` where chat_id='$cid' LIMIT 1",$db))[0];
+$intnull = 0;
+$total_sent = intval(json_decode(file_get_contents("https://blockchain.info/q/getsentbyaddress/".$address), true));
+$total_sent_database = mysql_fetch_row(mysql_query("select sentamount from `users` where chat_id='$cid' LIMIT 1",$db))[0];
+$user_balance = mysql_fetch_row(mysql_query("select balance from `users` where chat_id='$cid' LIMIT 1",$db))[0];
+
+
+if(($total_sent>0)&&($total_sent>$total_sent_database)){
+    mysql_query("update `users` SET sentamount = '{$total_sent}' WHERE chat_id = '{$cid}' LIMIT 1",$db);
+    mysql_query("update `users` SET total = '{$intnull}' WHERE chat_id = '{$cid}' LIMIT 1",$db);
+    mysql_query("update `users` SET frozenbalance = '{$intnull}' WHERE chat_id = '{$cid}' LIMIT 1",$db);
+    mysql_query("update `users` SET frozensatoshi = '{$intnull}' WHERE chat_id = '{$cid}' LIMIT 1",$db);
+    if($total_received>$user_balance_satoshi){
+        mysql_query("update `users` SET total = '{$total_received}' WHERE chat_id = '{$cid}' LIMIT 1",$db);
+        $new_balance_in_satoshi = $total_received - $user_balance_satoshi;
+        $new_balance_in_usd = ceil(floatval((str_replace(",",".",json_decode(file_get_contents('https://blockchain.info/frombtc?currency=USD&value='.$new_balance_in_satoshi), true)))));
+        $new_balance_usd = $user_balance+$new_balance_in_usd;
+        mysql_query("update `users` SET balance = '{$new_balance_usd}' WHERE chat_id = '{$cid}' LIMIT 1",$db);
+        mysql_query("update `users` SET frozenbalance = '{$intnull}' WHERE chat_id = '{$cid}' LIMIT 1",$db);
+        return 1;
+    }
+    if($total_received_withoutconfirm>$frozen_satoshi){
+            mysql_query("update `users` SET frozensatoshi = '{$total_received_withoutconfirm}' WHERE chat_id = '{$cid}' LIMIT 1",$db);
+            $new_frozen_balance_in_satoshi = $total_received_withoutconfirm-$frozen_satoshi;
+            $new_frozen_balance_in_usd = ceil(floatval((str_replace(",",".",json_decode(file_get_contents('https://blockchain.info/frombtc?currency=USD&value='.$new_frozen_balance_in_satoshi), true)))));
+            $new_frozen_balance = $frozen_balance + $new_frozen_balance_in_usd;
+            mysql_query("update `users` SET frozenbalance = '{$new_frozen_balance}' WHERE chat_id = '{$cid}' LIMIT 1",$db);
+        return 2;
+    }
+}
+else{
+    if($total_received>$user_balance_satoshi){
+        mysql_query("update `users` SET total = '{$total_received}' WHERE chat_id = '{$cid}' LIMIT 1",$db);
+        $new_balance_in_satoshi = $total_received-$user_balance_satoshi;
+        $new_balance_in_usd = ceil(floatval((str_replace(",",".",json_decode(file_get_contents('https://blockchain.info/frombtc?currency=USD&value='.$new_balance_in_satoshi), true)))));
+        $new_balance_usd = $user_balance+$new_balance_in_usd;
+        mysql_query("update `users` SET balance = '{$new_balance_usd}' WHERE chat_id = '{$cid}' LIMIT 1",$db);
+        mysql_query("update `users` SET frozenbalance = '{$intnull}' WHERE chat_id = '{$cid}' LIMIT 1",$db);
+        return 1;
+    }
+    if($total_received_withoutconfirm>$frozen_satoshi){
+            mysql_query("update `users` SET frozensatoshi = '{$total_received_withoutconfirm}' WHERE chat_id = '{$cid}' LIMIT 1",$db);
+            $new_frozen_balance_in_satoshi = $total_received_withoutconfirm-$frozen_satoshi;
+            $new_frozen_balance_in_usd = ceil(floatval((str_replace(",",".",json_decode(file_get_contents('https://blockchain.info/frombtc?currency=USD&value='.$new_frozen_balance_in_satoshi), true)))));
+            $new_frozen_balance = $frozen_balance + $new_frozen_balance_in_usd;
+            mysql_query("update `users` SET frozenbalance = '{$new_frozen_balance}' WHERE chat_id = '{$cid}' LIMIT 1",$db);
+            return 2;
+    }
+}
+}
+function getfrozenbalance($cid){
     global $db;
     $cid = mysql_real_escape_string($cid);
-    $address = mysql_fetch_row(mysql_query("select adress from `users` where chat_id='$cid' LIMIT 1",$db))[0];
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, 'https://blockchain.info/balance?active='.$address);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    $result = curl_exec($ch);
-    $arr = json_decode($result);
-    $total_received = $arr->$address->total_received;
-    curl_close($ch);
-    $result = mysql_query("select total from `users` where chat_id='$cid' LIMIT 1",$db);
-    $total_arr = mysql_fetch_row($result);
-    $total_data = $total_arr[0];
-    if($total_received == $total_data){
-
-    }
-    else
-    {
-        $balance = $total_received-$total_data;
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, 'https://blockchain.info/frombtc?currency=USD&value='.$balance);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        $resbal = curl_exec($ch);
-        $resbal = floatval(str_replace(",","",$resbal));
-        curl_close($ch);
-        $userbalance = mysql_query("select balance from `users` where chat_id='$cid' LIMIT 1",$db);
-        $ub_arr = mysql_fetch_row($userbalance);
-        $ubalance = $ub_arr[0];
-        $newbalance = $ubalance + $resbal;
-        mysql_query("update `users` SET balance = '{$newbalance}' WHERE chat_id = '{$cid}' LIMIT 1",$db);
-        $testbalance = mysql_fetch_row(mysql_query("select balance from `users` where chat_id='$cid' LIMIT 1",$db))[0];
-        mysql_query("update `users` SET total = '{$total_received}' WHERE chat_id = '{$cid}' LIMIT 1",$db);
+    $frozen_balance = mysql_fetch_row(mysql_query("select frozenbalance from `users` where chat_id='$cid' LIMIT 1",$db))[0];
+    return $frozen_balance;
 }
-}
-
 function make_user($name,$chat_id,$password){
 	global $db;
 	$name = mysql_real_escape_string($name);
@@ -374,7 +405,7 @@ function getgoodpic($path){
    $file = $dir.$path;
    $newfile = $selldir.$time.$path;
    rename($file,$newfile);
-   $finalpath = 'https://mbw.best/bitcoinbot/asset/pic/sell/'.$time.$path;
+   $finalpath = 'https://botforbtc123.ru/bitcoinbot/asset/pic/sell/'.$time.$path;
    return $finalpath;
     
     

@@ -2,9 +2,9 @@
 /*подключение к базе данных*/
 
 $host = "localhost"; // в 90% случаев это менять не надо
-$password = "Volkova2020!";
-$username = "t3sla24u_bot";
-$databasename = "t3sla24u_bot";
+$password = "Bitcoin2020";
+$username = "handipu7_bots";
+$databasename = "handipu7_bots";
 
 global $db;
 $db = mysql_connect($host,$username,$password) or die("error: Failed_connect_database");

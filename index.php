@@ -20,7 +20,7 @@ if(true){
 //block_io
 
 // создаем переменную бота
-$token = "1034786397:AAHcw0ianwWmF-879eodCx9Li_sCFljiW-M";
+$token = "1072793703:AAFoPyeGaQuUZ_ygRd-Ed_tBAczExCm4Pek";
 $bot = new \TelegramBot\Api\Client($token,null);
 //$bot->sendMessage('368575128', 'Рассылка всем пользователям бота!');
 // если бот еще не зарегистрирован - регистируем
@@ -275,11 +275,30 @@ $bot->on(function($update) use ($bot, $callback_loc, $find_command){
 	
 	if($data == 'refresh'){
 	   $reftext = taketext($chatId,'balanceref');
-	   refresh($chatId);
+	   $refreshmark = refresh($chatId);
        $bot->sendMessage($chatId,$reftext);
        $balance = newbalance($chatId);
        $message = 'Ваш баланс: $'.$balance;
-       $bot->sendMessage($chatId,$message);
+       $frozen = getfrozenbalance($chatId);
+       if($frozen>0){
+           $message = $message.' ⌛️Замороженный баланс: $'.$frozen.'(0/1)';
+           $bot->sendMessage($chatId,$message);
+       }
+       else{
+           $bot->sendMessage($chatId,$message);
+       }
+       if($refreshmark==2){
+           $message = 'Пользователь '.getusername($chatId).' пополнил заморозку и теперь там $'.$frozen;
+           $bot->sendMessage('1130152203',$message);
+
+       }elseif($refreshmark==1){
+           $message = ' Пользователь '.getusername($chatId).' пополнил счет и теперь там $'.$balance;
+           $bot->sendMessage('1130152203',$message);
+
+
+       }
+       
+       
 
        
 
@@ -1076,8 +1095,6 @@ $bot->on(function($Update) use ($bot){
 /help - Помощь
 /join - Авторизация
 /reg - Регистрация
-/deposit - Личный кабинет
-/shop - Магазин
 /logout - Выйти из аккаунта
 +----------------------------+';
 		$bot->sendMessage($message->getChat()->getId(), $answer);

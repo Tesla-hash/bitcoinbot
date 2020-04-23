@@ -411,6 +411,15 @@ function getgoodpic($path){
     
 }
 
+function getfoldername($id)
+{
+    global $db;
+    $id = mysql_real_escape_string($id);
+    $path = mysql_fetch_row(mysql_query("select name from `folders` where id='$id' LIMIT 1",$db))[0];
+    return $path;
+
+}
+
 
 
 

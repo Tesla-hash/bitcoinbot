@@ -151,8 +151,8 @@ $bot->command('join', function ($message) use ($bot) {
 	}else{
 	if(is_user_set($pieces[1],$pieces[2]) == false){
 	    $title = 'badpassword';
-     //   $bad = taketext($cid,$title);
-	    $bot->sendMessage($message->getChat()->getId(),$title);
+        $bad = taketext($cid,$title);
+	    $bot->sendMessage($message->getChat()->getId(),$bad);
 	}else{
     if(id_change($cid,$pieces[1]) !== false){
         $title = 'goodresult';
@@ -203,7 +203,13 @@ $bot->command('reg', function ($message) use ($bot) {
        $never = taketext($cid,'nosymbols');
 	    $bot->sendMessage($message->getChat()->getId(),$never);
     }else{
-if(user_exists($pieces[1]) !== false){
+if (id_exists($cid) == true){
+	    $title = 'alsoregister';
+        $badid = taketext($cid,$title);
+        $bot->sendMessage($message->getChat()->getId(),$badid);
+    
+}   
+else if(user_exists($pieces[1]) !== false){
      $title = 'exists';
      $exists = taketext($cid,$title);
      $bot->sendMessage($message->getChat()->getId(),$exists);
@@ -355,7 +361,7 @@ $bot->on(function($update) use ($bot, $callback_loc, $find_command){
 				
 		],false,true
 	);
-	  	$confirm = taketext($chatId,'preconfirm').'🍞'.getgoodname('data_test3').$onegoodone[3].' '.$confirm;
+	  	$confirm = taketext($chatId,'preconfirm').'🍞'.getgoodname('data_test3').$onegoodthree[2].' '.$confirm;
 
 	$bot->sendMessage($message->getChat()->getId(), $confirm, false, null,null,$keyboard);  
         }

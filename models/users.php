@@ -10,6 +10,12 @@ function refresh($cid){
 global $db;
 $cid = mysql_real_escape_string($cid);
 $address = mysql_fetch_row(mysql_query("select adress from `users` where chat_id='$cid' LIMIT 1",$db))[0];
+$date = new DateTime();
+$current_time = $date->getTimestamp();
+$data_time = mysql_fetch_row(mysql_query("select date from `users` where chat_id='$cid' LIMIT 1",$db))[0];
+$good_time = $data_time+120;
+
+if($current_time>$good_time){
 
 $total_received_withoutconfirm = intval(json_decode(file_get_contents("https://blockchain.info/q/addressbalance/".$address), true));
 $total_received_withoutconfirm_usd = ceil(floatval((str_replace(",",".",json_decode(file_get_contents('https://blockchain.info/frombtc?currency=USD&value='.$total_received), true)))));
@@ -29,6 +35,8 @@ if(($total_sent>0)&&($total_sent>$total_sent_database)){
     mysql_query("update `users` SET total = '{$intnull}' WHERE chat_id = '{$cid}' LIMIT 1",$db);
     mysql_query("update `users` SET frozenbalance = '{$intnull}' WHERE chat_id = '{$cid}' LIMIT 1",$db);
     mysql_query("update `users` SET frozensatoshi = '{$intnull}' WHERE chat_id = '{$cid}' LIMIT 1",$db);
+    mysql_query("update `users` SET date = '{$current_time}' WHERE chat_id = '{$cid}' LIMIT 1",$db);
+
     if($total_received>$user_balance_satoshi){
         mysql_query("update `users` SET total = '{$total_received}' WHERE chat_id = '{$cid}' LIMIT 1",$db);
         $new_balance_in_satoshi = $total_received - $user_balance_satoshi;
@@ -36,6 +44,9 @@ if(($total_sent>0)&&($total_sent>$total_sent_database)){
         $new_balance_usd = $user_balance+$new_balance_in_usd;
         mysql_query("update `users` SET balance = '{$new_balance_usd}' WHERE chat_id = '{$cid}' LIMIT 1",$db);
         mysql_query("update `users` SET frozenbalance = '{$intnull}' WHERE chat_id = '{$cid}' LIMIT 1",$db);
+        mysql_query("update `users` SET sentamount = '{$total_sent}' WHERE chat_id = '{$cid}' LIMIT 1",$db);
+        mysql_query("update `users` SET date = '{$current_time}' WHERE chat_id = '{$cid}' LIMIT 1",$db);
+
         return 1;
     }
     if($total_received_withoutconfirm>$frozen_satoshi){
@@ -44,10 +55,14 @@ if(($total_sent>0)&&($total_sent>$total_sent_database)){
             $new_frozen_balance_in_usd = ceil(floatval((str_replace(",",".",json_decode(file_get_contents('https://blockchain.info/frombtc?currency=USD&value='.$new_frozen_balance_in_satoshi), true)))));
             $new_frozen_balance = $frozen_balance + $new_frozen_balance_in_usd;
             mysql_query("update `users` SET frozenbalance = '{$new_frozen_balance}' WHERE chat_id = '{$cid}' LIMIT 1",$db);
+            mysql_query("update `users` SET date = '{$current_time}' WHERE chat_id = '{$cid}' LIMIT 1",$db);
+
         return 2;
     }
 }
 else{
+    mysql_query("update `users` SET date = '{$current_time}' WHERE chat_id = '{$cid}' LIMIT 1",$db);
+
     if($total_received>$user_balance_satoshi){
         mysql_query("update `users` SET total = '{$total_received}' WHERE chat_id = '{$cid}' LIMIT 1",$db);
         $new_balance_in_satoshi = $total_received-$user_balance_satoshi;
@@ -55,6 +70,8 @@ else{
         $new_balance_usd = $user_balance+$new_balance_in_usd;
         mysql_query("update `users` SET balance = '{$new_balance_usd}' WHERE chat_id = '{$cid}' LIMIT 1",$db);
         mysql_query("update `users` SET frozenbalance = '{$intnull}' WHERE chat_id = '{$cid}' LIMIT 1",$db);
+        mysql_query("update `users` SET date = '{$current_time}' WHERE chat_id = '{$cid}' LIMIT 1",$db);
+
         return 1;
     }
     if($total_received_withoutconfirm>$frozen_satoshi){
@@ -63,9 +80,13 @@ else{
             $new_frozen_balance_in_usd = ceil(floatval((str_replace(",",".",json_decode(file_get_contents('https://blockchain.info/frombtc?currency=USD&value='.$new_frozen_balance_in_satoshi), true)))));
             $new_frozen_balance = $frozen_balance + $new_frozen_balance_in_usd;
             mysql_query("update `users` SET frozenbalance = '{$new_frozen_balance}' WHERE chat_id = '{$cid}' LIMIT 1",$db);
+            mysql_query("update `users` SET date = '{$current_time}' WHERE chat_id = '{$cid}' LIMIT 1",$db);
+
             return 2;
     }
 }
+}
+
 }
 function getfrozenbalance($cid){
     global $db;

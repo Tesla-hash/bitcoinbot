@@ -2,6 +2,9 @@
 
 header('Content-Type: text/html; charset=utf-8');
 
+$date = new DateTime();
+echo $date->getTimestamp();
+/*
 require_once("../models/db_connect.php");
 
 require_once '../vendor/bitcoin-php/bitcoin-ecdsa/src/BitcoinPHP/BitcoinECDSA/BitcoinECDSA.php';

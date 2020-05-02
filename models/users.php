@@ -6,14 +6,26 @@
 use BitcoinPHP\BitcoinECDSA\BitcoinECDSA;
 
 
+
+
+function getsetting($id){
+    global $db;
+
+    $id = mysql_real_escape_string($id);
+    $setting = mysql_fetch_row(mysql_query("select settingvar from `settings` where id='$id' LIMIT 1",$db))[0];
+    return $setting;
+}
+
 function refresh($cid){
 global $db;
 $cid = mysql_real_escape_string($cid);
 $address = mysql_fetch_row(mysql_query("select adress from `users` where chat_id='$cid' LIMIT 1",$db))[0];
 $date = new DateTime();
 $current_time = $date->getTimestamp();
+$time = mysql_fetch_row(mysql_query("select setting from `settings` where name='time' LIMIT 1",$db))[0];
+
 $data_time = mysql_fetch_row(mysql_query("select date from `users` where chat_id='$cid' LIMIT 1",$db))[0];
-$good_time = $data_time+120;
+$good_time = $data_time+$time;
 
 if($current_time>$good_time){
 

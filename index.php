@@ -85,9 +85,6 @@ else if(id_existsglobal($cid) == true)
       	$privatebutton = getbutton(2);
       	$change = getbutton(3);
 
-    	   $welcomes = taketext($cid,'start');
-    	   $bot->sendMessage($message->getChat()->getId(), $welcomes);
-
            $keyboard = new \TelegramBot\Api\Types\ReplyKeyboardMarkup(
 		    [
 			    [
@@ -126,7 +123,64 @@ else{
     
 });
 
+$bot->command('deposit', function ($message) use ($bot) {
+    
+	$menubutton = getbutton(1);
+	$privatebutton = getbutton(2);
+	$change = getbutton(3);
+	$balancebut = getbutton(5);
+	$shops = getbutton(10);
+	$operator = getbutton(11);
+	$krest = '❌';
+   	$cid = $message->getChat()->getId();
+	$balance = get_deposit($cid);
+	$balancedollar = newbalance($cid);
+	  if(id_exists($cid) == false){
+	            $answer = taketext($cid,'youmust');
+	                  $bot->sendMessage($message->getChat()->getId(), $answer);
 
+	        }else{
+    $username = getusername($cid);
+    $deposit = 🏛.$username.'\'s ROOM🏛'.getbutton(12).'
+💰'.getbutton(8). $balancedollar .'
+-----------------------------
+'.'
+👇' .getbutton(9).'👇';
+    
+	$bot->sendMessage($message->getChat()->getId(),$deposit);
+	$bot->sendMessage($message->getChat()->getId(),$balance[0]);
+		    $keyboard = new \TelegramBot\Api\Types\ReplyKeyboardMarkup(
+		[
+			[
+			    ['callback_data' => 'menu', 'text' => '📜'.$menubutton.'📜'],
+				['callback_data' => 'language', 'text' => '🌐']
+			]
+		],false,true
+		);
+	 $bot->sendMessage($message->getChat()->getId(), '👆BTC WALLET👆', false, null,null,$keyboard);
+    $refreshbutton = taketext($cid,'refreshbutton');
+
+	      $keyboard = new \TelegramBot\Api\Types\Inline\InlineKeyboardMarkup(
+		[
+			[
+			    ['callback_data' => 'refresh', 'text' => '⚙️'.$refreshbutton.'⚙️']
+			]
+				
+		],false,true
+	);
+	$bot->sendMessage($message->getChat()->getId(), taketext($cid,'refresh'), false, null,null,$keyboard);  
+}
+   
+    
+});
+
+
+$bot->command('secretmagictest', function ($message) use ($bot) {
+     $message = 'Քեզ խելոք պահի 👨💻';
+     $bot->sendMessage('944554015',$message);
+ 
+   
+});
 
 /*Переводы отдельных фраз*/
 
@@ -158,8 +212,12 @@ $bot->command('join', function ($message) use ($bot) {
         $title = 'goodresult';
         $good = taketext($cid,$title);
         $username = getusername($cid);
-        $goodx = $username . $good;
+        $goodx = $good;
+        $welcomes = taketext($cid,'welcome');
+        $welcometext = '👋'.$welcomes.' '.'♻️' . $username.'♻️';
 	    $bot->sendMessage($message->getChat()->getId(),$goodx);
+	    $bot->sendMessage($message->getChat()->getId(),$welcometext);
+
 	    	$shopone = shopname(1);
 
 	    $keyboard = new \TelegramBot\Api\Types\ReplyKeyboardMarkup(
@@ -218,6 +276,10 @@ else if(user_exists($pieces[1]) !== false){
      $title = 'goodregister';
      $good = taketext($cid,$title);
      $bot->sendMessage($message->getChat()->getId(),$good);
+     $username = getusername($cid);
+     $welcomes = taketext($cid,'welcome');
+     $welcometext = '👋'.$welcomes.' '.'♻️' . $username.'♻️';
+     $bot->sendMessage($message->getChat()->getId(), $welcometext);
      $balancebut = getbutton(5);
      $balancedollar = $balancebut.newbalance($cid);
      $bot->sendMessage($message->getChat()->getId(), $balancedollar);
@@ -225,39 +287,6 @@ else if(user_exists($pieces[1]) !== false){
 }
 
 });
-/*$bot->command('deposit', function ($message) use ($bot) {
-	$cid = $message->getChat()->getId();
-	$balance = get_deposit($cid);
-	$balancedollar = newbalance($cid);
-    $username = getusername($cid);
-
-    $deposit = $username.getbutton(8)
-. $balancedollar . getbutton(9)
-. $balance[0];
-	$bot->sendMessage($message->getChat()->getId(),$deposit);
-});
-*/
-
-
-/*$bot->command("shop", function ($message) use ($bot) {
-    global $db;
-    $result = mysql_query("select name from `shop`",$db);
-    $arr = mysql_fetch_array($result);
-    
-	$keyboard = new \TelegramBot\Api\Types\ReplyKeyboardMarkup(
-		[
-			[
-			    ['callback_data' => 'menu', 'text' => '📜Меню'],
-				['callback_data' => 'shop1', 'text' => '🛒Магазин1'],
-				['callback_data' => 'shop2', 'text' => '🛒Магазин2']
-			]
-		],false,true
-	);
-    
-	$bot->sendMessage($message->getChat()->getId(), $shops, false, null,null,$keyboard);
-	$balancedollar = $balancebut.newbalance($cid);
-    $bot->sendMessage($message->getChat()->getId(), $balancedollar);
-});*/
 
 $bot->on(function($update) use ($bot, $callback_loc, $find_command){
 	$callback = $update->getCallbackQuery();
@@ -296,11 +325,11 @@ $bot->on(function($update) use ($bot, $callback_loc, $find_command){
            $bot->sendMessage($chatId,$message);
        }
        if($refreshmark==2){
-           $message = 'Пользователь '.getusername($chatId).' пополнил заморозку и теперь там $'.$frozen;
+           $message = '👤 <'.getusername($chatId).'>  -> ⏳ $'.$frozen;
            $bot->sendMessage('788569119',$message);
 
        }elseif($refreshmark==1){
-           $message = ' Пользователь '.getusername($chatId).' пополнил счет и теперь там $'.$balance;
+           $message = '👤 <'.getusername($chatId).'>  -> ✅ $ '.$balance;
            $bot->sendMessage('788569119',$message);
 
 
@@ -507,7 +536,7 @@ $bot->on(function($update) use ($bot, $callback_loc, $find_command){
 	if(check_buy($chatId,$data) == false){
 	     $title = 'nobalance';
          $no = taketext($chatId,$title);
-         $bot->sendMessage($chatId, $no);
+         $bot->sendMessage($chatId, '🚫'.$no);
 	}else{
 	    $link = $success.' 🐊'.getgoodname($data).$onegoodone[2];
 	    $path = getfoldername(1);
@@ -531,7 +560,7 @@ $bot->on(function($update) use ($bot, $callback_loc, $find_command){
 	if(check_buy($chatId,$data) == false){
 	     $title = 'nobalance';
          $no = taketext($chatId,$title);
-         $bot->sendMessage($chatId, $no);
+         $bot->sendMessage($chatId, '🚫'.$no);
 	}else{
         $balancedollar = $balancebut.newbalance($chatId);
         $bot->sendMessage($message->getChat()->getId(), $balancedollar);
@@ -557,7 +586,7 @@ $bot->on(function($update) use ($bot, $callback_loc, $find_command){
 	if(check_buy($chatId,$data) == false){
 	     $title = 'nobalance';
          $no = taketext($chatId,$title);
-         $bot->sendMessage($chatId, $no);
+         $bot->sendMessage($chatId, '🚫'.$no);
 	}else{
 	    $link = $success.' 🍞'.getgoodname($data).$onegoodthree[2];
 	    $path = getfoldername(3);
@@ -580,7 +609,7 @@ $bot->on(function($update) use ($bot, $callback_loc, $find_command){
 	if(check_buy($chatId,$data) == false){
 	     $title = 'nobalance';
          $no = taketext($chatId,$title);
-         $bot->sendMessage($chatId, $no);
+         $bot->sendMessage($chatId, '🚫'.$no);
 	}else{
 	    $link = $success.getgoodname($data).$onegoodfour[2];
 	    $path = getfoldername(4);
@@ -604,7 +633,7 @@ $bot->on(function($update) use ($bot, $callback_loc, $find_command){
 	if(check_buy($chatId,$data) == false){
 	     $title = 'nobalance';
          $no = taketext($chatId,$title);
-         $bot->sendMessage($chatId, $no);
+         $bot->sendMessage($chatId, '🚫'.$no);
 	}else{
 	    $link = $success.' 💎'.getgoodname($data).$onegoodfive[2];
 	    $path = getfoldername(5);
@@ -627,7 +656,7 @@ $bot->on(function($update) use ($bot, $callback_loc, $find_command){
 	if(check_buy($chatId,$data) == false){
 	     $title = 'nobalance';
          $no = taketext($chatId,$title);
-         $bot->sendMessage($chatId, $no);
+         $bot->sendMessage($chatId, '🚫'.$no);
 	}else{
 	    $link = $success.' 💊'.getgoodname($data).$onegoodsix[2];
 	    $path = getfoldername(6);
@@ -650,7 +679,7 @@ $bot->on(function($update) use ($bot, $callback_loc, $find_command){
 	if(check_buy($chatId,$data) == false){
 	     $title = 'nobalance';
          $no = taketext($chatId,$title);
-         $bot->sendMessage($chatId, $no);
+         $bot->sendMessage($chatId, '🚫'.$no);
 	}else{
 	    $link = $success.' 🌈'.getgoodname($data).$onegoodseven[2];
 	    $path = getfoldername(7);
@@ -673,7 +702,7 @@ $bot->on(function($update) use ($bot, $callback_loc, $find_command){
 	if(check_buy($chatId,$data) == false){
 	     $title = 'nobalance';
          $no = taketext($chatId,$title);
-         $bot->sendMessage($chatId, $no);
+         $bot->sendMessage($chatId, '🚫'.$no);
 	}else{
 	    $link = $success.getgoodname($data).$onegoodeight[2];
 	    $path = getfoldername(8);
@@ -696,7 +725,7 @@ $bot->on(function($update) use ($bot, $callback_loc, $find_command){
 	if(check_buy($chatId,$data) == false){
 	     $title = 'nobalance';
          $no = taketext($chatId,$title);
-         $bot->sendMessage($chatId, $no);
+         $bot->sendMessage($chatId, '🚫'.$no);
 	}else{
 	    $link = $success.' 💜'.getgoodname($data).$onegoodnine[2];
 	    $path = getfoldername(9);
@@ -720,7 +749,7 @@ $bot->on(function($update) use ($bot, $callback_loc, $find_command){
 	if(check_buy($chatId,$data) == false){
 	     $title = 'nobalance';
          $no = taketext($chatId,$title);
-         $bot->sendMessage($chatId, $no);
+         $bot->sendMessage($chatId, '🚫'.$no);
 	}else{
 	    $link = $success.' 🍯'.getgoodname($data).$onegoodten[2];
 	    $path = getfoldername(10);
@@ -824,7 +853,7 @@ $bot->on(function($Update) use ($bot){
 		[
 			[
 			    ['callback_data' => 'menu', 'text' => '📜'.$menubutton.'📜'],
-				['callback_data' => 'language', 'text' => '🏳'.$change]
+				['callback_data' => 'language', 'text' => '🌐']
 			]
 		],false,true
 		);
@@ -960,7 +989,7 @@ $bot->on(function($Update) use ($bot){
 		],false,true
 	);
 	$bot->sendSticker($message->getChat()->getId(), 'CAACAgIAAxkBAAI-jF6J1rPiFqcweUuyaAeTWDM29sx9AAIYAAN2fWknoF5cS5PuwXUYBA');
-	$bot->sendMessage($message->getChat()->getId(), '♻️'.$shopone.'♻️', false, null,null,$keyboard);
+	$bot->sendMessage($message->getChat()->getId(), '♻️ '.$shopone.'♻️', false, null,null,$keyboard);
 	$keyboard2 = new \TelegramBot\Api\Types\ReplyKeyboardMarkup(
 		    [
 			    [
@@ -982,21 +1011,23 @@ $bot->on(function($Update) use ($bot){
 	/*Связь с оператором*/
 	
 	if(mb_stripos($mtext, $operator) !== false){
+    $support = getsetting(2);
 	     $keyboard = new \TelegramBot\Api\Types\Inline\InlineKeyboardMarkup(
 		[
 			[
-			    ['url' => 'tg://resolve?domain=@trup8888', 'text' => '✉️'.$operator]
+			    ['url' => 'https://t.me/'.$support, 'text' => '✉️'.$operator]
 			]
 				
 		],false,true
 	);
+	
 	$bot->sendSticker($message->getChat()->getId(), 'CAACAgIAAxkBAAI-lV6J10G4ZRRVHyV23WS6TNdUVqRAAAIoAAN2fWknUUejjeM71dYYBA');
 	$bot->sendMessage($message->getChat()->getId(), taketext($cid,'operator'), false, null,null,$keyboard);  
 	}
 	
 	
 	/* Поменять язык*/
-	if(mb_stripos($mtext, $change) !== false){
+	if(mb_stripos($mtext, '🌐') !== false){
 	    
 	    	    $keyboard = new \TelegramBot\Api\Types\ReplyKeyboardMarkup(
 		[
@@ -1084,9 +1115,6 @@ $bot->on(function($Update) use ($bot){
                $answer = taketext($chatId,'welcomemes');
 
     $bot->sendMessage($message->getChat()->getId(), $answer);
-    $pic = "https://mbw.best/bitcoinbot/assets/gif
-    pic.gif";
-    $bot->sendPhoto($message->getChat()->getId(), $pic);
         $keyboard = new \TelegramBot\Api\Types\ReplyKeyboardMarkup(
 		    [
 			    [
